@@ -27,6 +27,14 @@ Url::Url(std::string const& url)
     }
   }
 
+  if (urlIter != url.end() && *urlIter == '[')
+  {
+    ++urlIter;
+    auto hostIter = std::find(urlIter, url.end(), ']');
+    m_host = std::string(urlIter, hostIter);
+    urlIter = hostIter + 1;
+  }
+  else
   {
     auto const hostIter
         = std::find_if(urlIter, url.end(), [](auto c) { return c == '/' || c == '?' || c == ':'; });
@@ -208,7 +216,16 @@ std::string Url::GetUrlWithoutQuery(bool relative) const
     {
       url += m_scheme + "://";
     }
+    bool is_ipv6 = m_host.find(':') != std::string::npos;
+    if (is_ipv6)
+    {
+      url += '[';
+    }
     url += m_host;
+    if (is_ipv6)
+    {
+      url += ']';
+    }
     if (m_port != 0)
     {
       url += ":" + std::to_string(m_port);
